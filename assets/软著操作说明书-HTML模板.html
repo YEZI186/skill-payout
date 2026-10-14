@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>操作说明书模板</title>
+<style>
+  /* 验证过的软著 A4 排版样式，请勿改动 */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { background: #fff; }
+  body {
+    font-family: "Times New Roman", "SimSun", "宋体", "Songti SC", serif;
+    color: #000;
+    line-height: 1.6;
+    font-size: 14pt;
+  }
+
+  /* A4 版心：上下 2.54cm 左右 3.17cm */
+  .page {
+    max-width: 16.6cm;
+    margin: 0 auto;
+    padding: 0.6cm 0.2cm 0.8cm;
+  }
+
+  /* 封面：软件名 宋体22pt加粗居中，版本/文档类型 15pt；
+     整体垂直居中（人工裁定 2026-09-22）：flex 列 + min-height 版心高 24.62cm
+     （A4 29.7cm - 上下页边距 2.54cm×2），封面三行作为整体在页面垂直方向居中。
+     原 padding: 4cm 0 2cm 让封面内容贴顶部，已弃用。 */
+  .cover {
+    text-align: center;
+    min-height: 24.62cm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
+  .cover h1 {
+    font-family: "SimSun", "宋体", serif;
+    font-size: 22pt; font-weight: bold; color: #000;
+    letter-spacing: 2px; line-height: 1.5; margin-bottom: 1.2cm;
+  }
+  .cover .version { font-size: 15pt; font-weight: normal; color: #000; }
+  .cover .doctype { font-size: 15pt; margin-top: 0.2cm; color: #000; }
+
+  /* 章 = h2 宋体二号22pt加粗；子节 = h3 黑体三号16pt加粗；操作小节 = h4 宋体13.5pt粗 */
+  h2 {
+    font-family: "SimSun", "宋体", serif;
+    font-size: 22pt; font-weight: bold; color: #000;
+    margin: 28pt 0 14pt; text-align: left; border: none;
+  }
+  h3 {
+    font-family: "SimHei", "黑体", "Microsoft YaHei", sans-serif;
+    font-size: 16pt; font-weight: bold; color: #000; margin: 22pt 0 10pt;
+  }
+  h4 {
+    font-family: "SimSun", "宋体", serif;
+    font-size: 13.5pt; font-weight: bold; color: #000; margin: 18pt 0 8pt;
+  }
+
+  p { margin: 8pt 0; text-align: justify; font-size: 14pt; }
+  strong { font-weight: bold; }
+  code { font-family: "Courier New", monospace; font-size: 0.92em; }
+
+  /* 说明/提示/注意框 */
+  blockquote {
+    margin: 12pt 0 12pt 10pt; padding: 6pt 0 6pt 12pt;
+    border-left: 2pt solid #999; color: #222; background: none; font-size: 14pt;
+  }
+  blockquote p { margin: 2pt 0; }
+
+  ul, ol { margin: 8pt 0 10pt 26pt; }
+  li { margin: 5pt 0; font-size: 14pt; }
+
+  /* 表格：全网格边框，表头灰底 */
+  table { width: 100%; border-collapse: collapse; margin: 14pt 0; font-size: 12pt; font-family: "SimSun", "宋体", serif; }
+  th, td { border: 0.5pt solid #000; padding: 5pt 8pt; text-align: left; vertical-align: top; }
+  th { background: #f2f2f2; font-weight: bold; }
+  /* “项”列文字保持单行不折行，并固定合理宽度，避免被内容列挤压换行（人工2026-09-14要求） */
+  table th:first-child, table td:first-child {
+    white-space: nowrap;
+    width: 18%;
+    font-weight: bold;
+  }
+
+  .step { font-family: "SimSun", "宋体", serif; font-weight: bold; }
+
+  /* ===== 并排图（.img-row）内每张图的宽度上限 =====
+     背景：转换桥脚本会把图片排版样式接在本模板 CSS 之后，其中
+       .img-inline img { max-width: 8.5cm }  两张加 12pt 间距 = 17.42cm，
+     超出真实版心，flex 容器 wrap 后两张图退化成上下堆叠，「并排」实际失效。
+     同时转换桥还会给每张图写 inline max-width（--img-width，默认 560px），
+     inline 样式优先级高于任何类选择器，所以必须用 !important 才能压住。
+
+     ⚠ 关键实测结论（2026-09-21，勿再踩）：
+       .page 上的 max-width: 16.6cm 只在【屏幕】媒体下生效；
+       打印时由 @page 的 margin 决定内容区，A4 宽 21cm 减去左右各 3.17cm，
+       真实版心 = 14.66cm（415.6pt），不是 16.6cm。
+       按 16.6cm 计算宽度会得出「放得下」的错误结论，实际仍然换行。
+
+     取值：6.8cm × 2 + 12pt 间距 = 14.02cm < 14.66cm，可稳定并排。
+     人工裁定 2026-09-21：应《图文设计制作一体化软件》说明书排版需要调整本口径。
+     如需回退，删除本段即可（原模板备份见 软著操作说明书-HTML模板.html.bak-20260921）。 */
+  .img-row .img-inline img { max-width: 6.8cm !important; }
+
+  /* 页眉页脚：页眉左对齐系统名+右上页码；页脚居中页码。封面页同样显示 */
+  /* 页眉页脚【单一来源】：只由下面这段 @page 边距框提供。
+     打印时禁止再启用浏览器自带页眉页脚（Chrome/Playwright 的 displayHeaderFooter），
+     否则每页会出现两套页码（已踩：页眉右侧与页脚居中各印两次）。
+     Playwright 打印参数见 SKILL.md 第六步。
+     页眉与正文间距（人工裁定 2026-09-22）：对照 Word 版式参考文档，
+     Word 页眉顶端距离 851twips（1.5cm）、正文页边距上 2.54cm，两者间约 0.7cm 空隙。
+     实现：@top-left / @top-right 用 vertical-align: top + padding-top: 1.5cm
+     （Chromium 打印实测生效：页眉文字顶落 1.53cm，与正文留出约 0.7cm 间距）。
+     原 vertical-align: bottom 会让页眉文字紧贴版心顶、几乎无间距，已弃用。 */
+  @page {
+    size: A4;
+    margin: 2.54cm 3.17cm;
+    @top-left {
+      content: "【系统名 V1.0】";
+      font-size: 9pt; color: #000; font-family: "SimSun", "宋体", serif;
+      vertical-align: top; padding-top: 1.5cm;
+    }
+    @top-right {
+      content: counter(page);
+      font-size: 9pt; color: #000; font-family: "SimSun", "宋体", serif;
+      vertical-align: top; padding-top: 1.5cm;
+    }
+    @bottom-center {
+      content: counter(page);
+      font-size: 12pt; color: #000; font-family: "SimSun", "宋体", serif;
+    }
+  }
+
+  @media print {
+    html, body { background: #fff; }
+    .page { padding: 0; max-width: 100%; }
+    .cover { page-break-after: always; }
+    h2, h3 { page-break-after: avoid; }
+    table { page-break-inside: auto; }
+  }
+
+  /* 目录（TOC）两级，含引导点与页码 */
+  .toc-page { page-break-after: always; }
+  .toc-title {
+    text-align: center; font-family: "SimSun", "宋体", serif;
+    font-size: 22pt; font-weight: bold; margin: 1cm 0 1cm;
+  }
+  .toc { margin: 0 auto; max-width: 14cm; }
+  .toc-item {
+    display: flex; align-items: baseline; line-height: 2;
+    font-family: "SimSun", "宋体", serif; font-size: 14pt; color: #000;
+  }
+  .toc-item .t { white-space: nowrap; }
+  .toc-item .dots {
+    flex: 1; border-bottom: 1.5pt dotted #000; margin: 0 6pt;
+    position: relative; top: -4pt; min-width: 1em;
+  }
+  .toc-item .pg { white-space: nowrap; }
+  .toc-l1 { font-weight: bold; }
+  .toc-l2 { font-weight: normal; }
+  .toc-l2 .t { padding-left: 2em; }
+  .toc-item a { text-decoration: none; color: #000; }
+  .toc-item a:hover { color: #333; }
+
+  @media (max-width: 720px) {
+    body { font-size: 12pt; }
+    .cover h1 { font-size: 18pt; }
+    h2 { font-size: 18pt; }
+    h3 { font-size: 14pt; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ===== 封面 ===== -->
+  <div class="cover">
+    <h1>【软件全称】</h1>
+    <div class="version">【版本号，如 V1.0】</div>
+    <div class="doctype">【文档类型：用户操作手册 / 操作说明书】</div>
+  </div>
+
+  <!-- ===== 目录（标题层级：章=h2 / 子节=h3，页码填写后静态回填）===== -->
+  <div class="toc-page">
+    <div class="toc-title">目　录</div>
+    <div class="toc">
+      <div class="toc-item toc-l1"><a href="#chap1" class="t">一、【第一章标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+      <div class="toc-item toc-l1"><a href="#chap2" class="t">二、【第二章标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+        <div class="toc-item toc-l2"><a href="#sec1" class="t">【二级标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+        <div class="toc-item toc-l2"><a href="#sec2" class="t">【二级标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+      <div class="toc-item toc-l1"><a href="#chap3" class="t">三、【第三章标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+        <div class="toc-item toc-l2"><a href="#sec3" class="t">【二级标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+      <div class="toc-item toc-l1"><a href="#chap4" class="t">四、【第四章标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+        <div class="toc-item toc-l2"><a href="#sec4" class="t">【模块标题】</a><span class="dots"></span><span class="pg">【页码】</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 正文四章骨架（新增子节时按序补 sec id，并在目录对应增条目）===== -->
+
+  <h2 id="chap1">一、【第一章标题】</h2>
+  <p>【软件概述简介，2-3 段为宜：软件是什么、面向谁、解决什么问题、主要技术构成，不重复后文细节。】</p>
+  <p>【（可选）第二段。】</p>
+
+  <h2 id="chap2">二、【第二章标题，如：运行环境】</h2>
+  <p>【本章总起句。】</p>
+
+  <h3 id="sec1">1. 【子节标题】</h3>
+  <table>
+    <thead><tr><th>项</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>【项】</td><td>【内容】</td></tr>
+      <tr><td>【项】</td><td>【内容】</td></tr>
+    </tbody>
+  </table>
+  <blockquote>【可选补充说明】</blockquote>
+
+  <h3 id="sec2">2. 【子节标题】</h3>
+  <p>【正文描述】</p>
+
+  <h2 id="chap3">三、【第三章标题，如：系统架构】</h2>
+
+  <h3 id="sec3">1. 【子节标题】</h3>
+  <p>【正文描述】</p>
+
+  <h3>2. 【子节标题】</h3>
+  <p>【正文描述】</p>
+
+  <h3>3. 【子节标题】</h3>
+  <h4>（1）【条目一】</h4>
+  <p>【描述】</p>
+  <h4>（2）【条目二】</h4>
+  <p>【描述】</p>
+
+  <h3>4. 【子节标题】</h3>
+  <p>【总述】</p>
+  <h4>【功能一】</h4>
+  <p>【描述】</p>
+
+  <h2 id="chap4">四、【第四章标题，如：操作说明】</h2>
+
+  <h3 id="sec4">4.1 【模块一】</h3>
+  <h4>1. 功能描述</h4>
+  <p>【模块功能总述】</p>
+  <h4>2. 操作说明</h4>
+  <h4>（1）【操作项一】</h4>
+  <p>【操作步骤描述】</p>
+  <blockquote>【可选提示/注意】</blockquote>
+  <h4>（2）【操作项二】</h4>
+  <p>【操作步骤描述】</p>
+  <ul>
+    <li>【要点一】</li>
+    <li>【要点二】</li>
+  </ul>
+
+  <!-- 按需继续添加 4.2、4.3… 模块；新增子节分配 sec5、sec6… 并在目录补条目 -->
+
+</div>
+</body>
+</html>

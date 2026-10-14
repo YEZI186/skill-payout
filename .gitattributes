@@ -1,0 +1,8 @@
+# 统一以 LF 存储，避免跨平台协作时行尾混乱
+* text=auto eol=lf
+
+# 二进制/资源文件不做行尾转换
+*.png binary
+*.ico binary
+*.jpg binary
+*.pdf binary

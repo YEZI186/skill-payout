@@ -1,0 +1,19 @@
+# Python 运行产物
+__pycache__/
+*.pyc
+*.pyo
+
+# 运行期产物（每次使用 skill 生成，绝不上传）
+out/
+build/
+history/
+
+# 本地备份与临时副本
+*.bak
+*.bak-*
+*.tmp
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>源代码排版模板</title>
+<style>
+  /* ===================================================================
+     软著《程序鉴别材料》源代码排版样式（权威源，请勿随手改动）
+
+     版式对标一份 WPS 生成的 Word 样本（A4 / 页边距 上2 下2 左3.75 右2.5cm /
+     页眉距边界 1.5cm / 页脚距边界 1.0cm / 页眉「软件名 V1.0 ｜ 程序鉴别材料 ｜ 第 N 页」/
+     页脚「N / M」/ 全文行号连续）。2026-10-13 两轮人工复审后按 **Word 的渲染**逐点对齐：
+     页眉下横线 = 页眉段落负缩进范围 2.27→19.61cm（宽 17.34cm），页脚字号与页眉同为 9pt 常规。
+
+     三处硬约束（改一处必须跟着改）：
+       ① 每页 60 行由转换桥切分，本模板只负责容器与强制分页，不参与"凑行数"；
+       ② @page 左边距(2cm) + .sheet 的 padding-left(1.75cm) = 视觉页边距 3.75cm ——
+          这条耦合链是行号能印出来的前提，见 .ln i 的注释；
+       ③ @page 右边距(1.39cm) + .sheet 的 padding-right(1.11cm) = 2.5cm —— 给横线右端
+          (19.61cm) 让出打印内容区，同时把正文右界推回 18.50cm。@top-center / @top-right
+          各带 1.11cm 内边距，使页眉三段位置不随边缘参数漂移。
+     =================================================================== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { background: #fff; }
+  body {
+    font-family: "Courier New", "SimSun", "宋体", "Songti SC", monospace;
+    color: #000;
+    font-size: 【字号】pt;
+    line-height: 【行高】pt;
+  }
+
+  /* 每页一个 .sheet：60 行已由转换桥切好，break-after 强制分页。
+     不用"内容自然流淌 + 浏览器分页"——那样每页行数由行高与版心高相除决定，
+     亚像素累积会让最后一页少一行，且无法与 Word 的 60 行网格对齐。 */
+  .sheet {
+    position: relative;
+    padding-left: 1.75cm;
+    padding-right: 1.11cm;
+    break-after: page;
+  }
+  .sheet:last-child { break-after: auto; }
+
+  /* 页眉下横线：复刻 Word/WPS 页眉段落的**负缩进范围** = 纸面 2.27→19.61cm（宽 17.34cm）。
+     样本 docx 的页眉段落左缩进 -840twips(-1.48cm)、右缩进 -630twips(-1.11cm)，Word 会把
+     段落下边框一并负缩进；LibreOffice 不会（它把边框限制在版心内，量出来是 3.75→18.50cm）。
+     **以 Word 的渲染为准** —— 人工复审两次：先按 LibreOffice 值做被指"长度不够"，改回负缩进范围。
+     推导：@page 右边距 1.39cm → 打印内容区右界 19.61cm = 横线右端（right:0）；
+           @page 左边距 2.0cm → 横线左端 2.27cm = left:0.27cm。
+     【勿改回 .sheet 的 border-top】那条线的宽度只到内容区边缘，且左右端点会随边缘参数漂移。 */
+  .sheet::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0.27cm; right: 0;
+    border-top: 0.75pt solid #000;
+  }
+
+  .ln {
+    height: 【行高】pt;
+    line-height: 【行高】pt;
+    white-space: pre;                /* 保留缩进，禁用自动折行（折行由转换桥按列宽算） */
+    position: relative;
+  }
+  .ln code { font-family: inherit; white-space: pre; }
+
+  /* 行号列：绝对定位在 .sheet 的 padding 区（纸面 2.0–3.75cm），不占代码列宽。
+     【勿改回负 margin 或放到 .ln 之外】Chromium 打印只保留 @page 内容区内的内容，
+     内容区之外的元素会被整体裁掉 —— 实测把行号用负偏移摆到版心左侧时，
+     行号与同行正文的首字符一起消失（"CCC" 变成 "CC "）。 */
+  .ln i {
+    position: absolute;
+    left: -1.75cm;
+    width: 1.6cm;
+    text-align: right;
+    padding-right: 0.15cm;
+    font-style: normal;
+    font-family: "SimSun", "宋体", serif;
+  }
+
+  /* 页眉页脚【单一来源】：只由下面的 @page 边距框提供。
+     打印时禁止再开浏览器自带页眉页脚（Playwright 的 display_header_footer），
+     否则每页会出现两套页码。打印参数见 SKILL.md 源代码模式第四步。 */
+  @page {
+    size: A4;
+    margin: 2cm 1.39cm 2cm 2cm;      /* 左边距 2cm / 右边距 1.39cm 都是"打印内容区"边界，
+                                        不是视觉页边距；正文位置由 .sheet 的 padding 决定 */
+    @top-left {
+      content: "【软件名 V1.0】";
+      font-size: 9pt; color: #000; font-family: "SimSun", "宋体", serif;
+      vertical-align: top; padding-top: 1.5cm; padding-left: 0.27cm;
+    }
+    @top-center {
+      content: "【页眉中间词】";
+      font-size: 9pt; color: #000; font-family: "SimSun", "宋体", serif;
+      vertical-align: top; padding-top: 1.5cm; padding-right: 1.11cm;
+    }
+    @top-right {
+      content: "第 " counter(page) " 页";
+      font-size: 9pt; color: #000; font-family: "SimSun", "宋体", serif;
+      vertical-align: top; padding-top: 1.5cm; padding-right: 1.11cm;
+    }
+    /* 页脚与页眉同源：同为 9pt 常规宋体（人工裁定 2026-10-13）。
+       原为 12pt + bold —— Windows 宋体没有独立粗体字重，Chromium 打印时只能做
+       合成粗体（synthetic bold），字形被位图化成 Type3 字体，与页眉的真字体既不同
+       号也不同形，视觉上像两套。页码不必靠字号强调，改回常规字重即可。
+       左右内边距把"居中区"从打印内容区 [2.0,19.61] 收回到**版心** [3.75,18.50]，
+       页脚中心因此落在 11.125cm —— 与 Word 文档导出的 315.4pt 逐点一致；
+       不加这两条内边距时页脚会居中于内容区（中心 10.805cm，偏左 0.88cm）。 */
+    @bottom-center {
+      content: counter(page) " / " counter(pages);
+      font-size: 9pt; font-weight: normal; color: #000;
+      font-family: "SimSun", "宋体", serif;
+      vertical-align: bottom; padding-bottom: 0.6cm;
+      padding-left: 1.75cm; padding-right: 1.11cm;
+    }
+  }
+
+  @media print {
+    html, body { background: #fff; }
+    .sheet { page-break-after: always; }
+    .sheet:last-child { page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 每一页一个 .sheet，内含恰好 60 个 .ln（末页不足时补空行占位）。
+       下面只示前 3 行，其余由转换桥 build_code_html.py 生成：
+         .ln 里的 <i>= 行号（显示行序号，连续），<code> = 源码文本（& < > 已转义）。 -->
+
+  <section class="sheet">
+    <div class="ln"><i>1</i><code>import os</code></div>
+    <div class="ln"><i>2</i><code> </code></div>
+    <div class="ln"><i>3</i><code>def main():</code></div>
+    <!-- …（其余行由转换桥生成） -->
+  </section>
+
+</body>
+</html>
