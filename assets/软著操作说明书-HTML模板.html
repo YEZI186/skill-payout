@@ -138,7 +138,12 @@
     .page { padding: 0; max-width: 100%; }
     .cover { page-break-after: always; }
     h2, h3 { page-break-after: avoid; }
-    table { page-break-inside: auto; }
+    /* 表格宽度收进版心（人工裁定 2026-10-14）：
+       border-collapse 的外边框会画在盒子边界之外约 1pt，实测表格绘制区
+       x[90.0, 506.2]，而 @page margin 3.17cm 的版心右界为 505.4pt，
+       即表格右边框落到版心之外。收紧 1pt 后表格与图片一致落在版心内
+       （图片实测 x[90.4, 505.9]）。原口径备份见 软著操作说明书-HTML模板.html.bak-20261014-表格边界。 */
+    table { page-break-inside: auto; width: calc(100% - 1pt); }
   }
 
   /* 目录（TOC）两级，含引导点与页码 */
